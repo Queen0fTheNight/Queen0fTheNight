@@ -5,265 +5,294 @@
 <style>
 * { box-sizing: border-box; }
 html, body {
-  margin: 0; padding: 0;
-  width: 100%; height: 100%;
-  background: #111; color: #fff;
-  font-family: monospace;
-  overflow: hidden;
+margin: 0; padding: 0;
+width: 100%; height: 100%;
+background: #05050a; color: #fff;
+font-family: 'Courier New', monospace;
+overflow: hidden;
 }
 #gameUI {
-  position: absolute;
-  top: 10px; left: 10px;
-  background: rgba(0,0,0,0.8);
-  padding: 10px;
-  border: 2px solid #ff0;
-  z-index: 10;
-  max-width: 250px;
+position: absolute;
+top: 15px; left: 15px;
+background: rgba(5, 5, 15, 0.9);
+padding: 12px;
+border: 3px solid #ff00ff;
+border-radius: 8px;
+z-index: 10;
+max-width: 260px;
+box-shadow: 0 0 15px rgba(255, 0, 255, 0.4);
 }
 #dialogue {
-  position: absolute;
-  bottom: 20px; left: 5%; right: 5%;
-  background: rgba(20,20,20,0.95);
-  border: 3px solid #0ff;
-  padding: 10px; z-index: 10;
+position: absolute;
+bottom: 20px; left: 5%; right: 5%;
+background: rgba(10, 0, 20, 0.95);
+border: 3px solid #00ffff;
+border-radius: 8px;
+padding: 12px; z-index: 10;
+box-shadow: 0 0 15px rgba(0, 255, 255, 0.4);
 }
 #canvas {
-  display: block;
-  width: 100vw; height: 100vh;
+display: block;
+width: 100vw; height: 100vh;
 }
 .btn {
-  background: #ff0; color: #000;
-  border: none; padding: 5px;
-  font-weight: bold; cursor: pointer;
-  display: none; margin-top: 5px;
+background: #00ffff; color: #000;
+border: none; padding: 8px;
+font-family: inherit; font-weight: bold;
+cursor: pointer; display: none; margin-top: 8px;
+width: 100%; border-radius: 4px;
 }
-</style>
-</head>
-<body>
+.btn:hover {
+background: #ff00ff; color: #fff;
+}
 
-<div id="gameUI">
-  <b style="color:#ff0;">DEACON ARENA</b>
-  <div id="stats">Loading...</div>
-  <button id="rstBtn" class="btn" onclick="resetGame()">RESTART</button>
-</div>
 
-<div id="dialogue">
-  <b style="color:#0ff;">Freddie:</b>
-  <div id="dialogueText">Let's go, John! Fight!</div>
-</div>
 
-<canvas id="canvas"></canvas>
 
-<script>
+NEON CRUSADE
+
+Loading Systems...
+RESPAWN
+
+FREDDIE VIRTUAL GUIDE:
+Horde detected! Use WASD or Arrows to move. Sweep your blade!
+
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 var loop, keys = {};
 var roomX = 0, roomY = 0;
 var pX, pY, pSize = 32, pSpeed = 6;
-var hp = 100, maxHp = 100, atk = 10;
-var lvl = 1, xp = 0, maxXp = 50, bossCount = 0;
+var hp = 100, maxHp = 100, atk = 12;
+var lvl = 1, xp = 0, maxXp = 60, bossCount = 0;
 var swing = false, swingTime = 0;
 var fX, fY, fSize = 32, fSpeed = 5;
 var fSwing = false, fSwingTime = 0, fAtkCooldown = 0;
 var badGuys = [];
-
+var powerUps = [];
 var johnImg = new Image();
 johnImg.crossOrigin = "anonymous";
-johnImg.src = "https://picsum.photos";
-
+johnImg.src = "picsum.photos";
 var freddieImg = new Image();
 freddieImg.crossOrigin = "anonymous";
-freddieImg.src = "https://picsum.photos";
-
+freddieImg.src = "picsum.photos";
 function beep(f, type, d) {
-  try {
-    var ctxA = new (window.AudioContext || window.webkitAudioContext)();
-    var osc = ctxA.createOscillator();
-    var gain = ctxA.createGain();
-    osc.type = type || "square";
-    osc.frequency.setValueAtTime(f, ctxA.currentTime);
-    gain.gain.setValueAtTime(0.03, ctxA.currentTime);
-    osc.connect(gain); gain.connect(ctxA.destination);
-    osc.start(); osc.stop(ctxA.currentTime + (d || 0.1));
-  } catch(e) {}
+try {
+var ctxA = new (window.AudioContext || window.webkitAudioContext)();
+var osc = ctxA.createOscillator();
+var gain = ctxA.createGain();
+osc.type = type || "square";
+osc.frequency.setValueAtTime(f, ctxA.currentTime);
+gain.gain.setValueAtTime(0.02, ctxA.currentTime);
+osc.connect(gain);
+gain.connect(ctxA.destination);
+osc.start();
+osc.stop(ctxA.currentTime + (d || 0.08));
+} catch(e) {}
 }
-
 function resize() {
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
 }
-window.addEventListener("resize", resize); resize();
-
+window.addEventListener("resize", resize);
+resize();
 function resetGame() {
-  hp = 100; maxHp = 100; atk = 10;
-  lvl = 1; xp = 0; maxXp = 50; bossCount = 0;
-  roomX = 0; roomY = 0;
-  pX = canvas.width / 2; pY = canvas.height / 2;
-  fX = pX - 50; fY = pY - 50;
-  badGuys = []; swing = false; fSwing = false;
-  document.getElementById("rstBtn").style.display = "none";
-  document.getElementById("dialogueText").innerHTML = "Let's hunt phantoms!";
-  beep(330, "triangle", 0.2);
-  populateRoom();
-  if(loop) clearInterval(loop);
-  loop = setInterval(run, 1000 / 30);
+hp = 100; maxHp = 100; atk = 12;
+lvl = 1; xp = 0; maxXp = 60; bossCount = 0;
+roomX = 0; roomY = 0; pSpeed = 6;
+pX = canvas.width / 2; pY = canvas.height / 2;
+fX = pX - 60; fY = pY - 60;
+badGuys = []; powerUps = [];
+swing = false; fSwing = false;
+document.getElementById("rstBtn").style.display = "none";
+document.getElementById("dialogueText").innerHTML = "System online. The matrix is crawling with phantoms. Eradicate them!";
+beep(440, "sine", 0.15);
+setTimeout(function() { beep(554, "sine", 0.15); }, 100);
+populateRoom();
+if(loop) clearInterval(loop);
+loop = setInterval(run, 1000 / 30);
 }
-
 function populateRoom() {
-  badGuys = [];
-  var isBoss = (Math.abs(roomX) + Math.abs(roomY)) % 2 === 0 && (roomX !== 0 || roomY !== 0);
-  if (isBoss && bossCount < 100) {
-    var bLvl = bossCount + 1;
-    badGuys.push({
-      x: canvas.width / 2, y: canvas.height / 3,
-      size: 55, hp: 150 + (bLvl * 100), maxHp: 150 + (bLvl * 100),
-      atk: 10 + (bLvl * 3), spd: 4 + (bLvl * 0.1), isBoss: true, label: "ULTRA BOSS " + bLvl,
-      state: "chase", stateTimer: 0, targetX: 0, targetY: 0
-    });
-    document.getElementById("dialogueText").innerHTML = "He's fast! Dodge his dash attacks, John!";
-    beep(100, "sawtooth", 0.6);
-  } else {
-    var count = 3 + Math.floor(Math.random() * 3);
-    for (var i = 0; i < count; i++) {
-      badGuys.push({
-        x: Math.random() * (canvas.width - 100) + 50,
-        y: Math.random() * (canvas.height - 100) + 50,
-        size: 24, hp: 15 + (lvl * 5), maxHp: 15 + (lvl * 5),
-        atk: 2 + lvl, spd: 2.5, isBoss: false, label: "Ghost"
-      });
-    }
-  }
+badGuys = [];
+powerUps = [];
+var isBoss = (Math.abs(roomX) + Math.abs(roomY)) % 2 === 0 && (roomX !== 0 || roomY !== 0);
+if (isBoss && bossCount < 100) {
+var bLvl = bossCount + 1;
+var calculatedBossSize = Math.min(120, 50 + (bLvl * 2));
+badGuys.push({
+x: canvas.width / 2, y: canvas.height / 3,
+size: calculatedBossSize, hp: 200 + (bLvl * 120), maxHp: 200 + (bLvl * 120),
+atk: 12 + (bLvl * 4), spd: 3.5 + (bLvl * 0.05), isBoss: true,
+label: "HYPER TITAN " + bLvl, state: "chase", stateTimer: 0,
+targetX: 0, targetY: 0
+});
+document.getElementById("dialogueText").innerHTML = "Freddie: Giant anomaly detected! This Titan scales with immense strength! Dodge its light-dashes!";
+beep(90, "sawtooth", 0.5);
+} else {
+var hordeCount = 10 + Math.floor(Math.random() * 8) + (lvl * 2);
+if (hordeCount > 35) hordeCount = 35;
+for (var i = 0; i < hordeCount; i++) {
+badGuys.push({
+x: Math.random() * (canvas.width - 100) + 50,
+y: Math.random() * (canvas.height - 100) + 50,
+size: 20, hp: 12 + (lvl * 6), maxHp: 12 + (lvl * 6),
+atk: 3 + lvl, spd: 2.2 + Math.random() * 1.8, isBoss: false,
+label: "Neon Swarm"
+});
 }
-
-function run() { update(); draw(); }
-
+if (Math.random() < 0.6) {
+powerUps.push({
+x: Math.random() * (canvas.width - 150) + 75,
+y: Math.random() * (canvas.height - 150) + 75,
+size: 16, type: "speed"
+});
+}
+}
+}
+function run() {
+update();
+draw();
+}
 function update() {
-  if (hp <= 0) return;
-  
-  if (keys['w'] || keys['W'] || keys['ArrowUp']) pY -= pSpeed;
-  if (keys['s'] || keys['S'] || keys['ArrowDown']) pY += pSpeed;
-  if (keys['a'] || keys['A'] || keys['ArrowLeft']) pX -= pSpeed;
-  if (keys['d'] || keys['D'] || keys['ArrowRight']) pX += pSpeed;
-
-  if (pX < -10) { roomX--; pX = canvas.width - 20; populateRoom(); fX = pX; }
-  if (pX > canvas.width + 10) { roomX++; pX = 20; populateRoom(); fX = pX; }
-  if (pY < -10) { roomY++; pY = canvas.height - 20; populateRoom(); fY = pY; }
-  if (pY > canvas.height + 10) { roomY--; pY = 20; populateRoom(); fY = pY; }
-
-  if (swing) { swingTime++; if (swingTime > 4) { swing = false; swingTime = 0; } }
-  if (fSwing) { fSwingTime++; if (fSwingTime > 4) { fSwing = false; fSwingTime = 0; } }
-  if (fAtkCooldown > 0) fAtkCooldown--;
-
-  if (badGuys.length > 0) {
-    var target = badGuys[0], minDist = 9999;
-    for (var k = 0; k < badGuys.length; k++) {
-      var dX = badGuys[k].x - fX, dY = badGuys[k].y - fY;
-      var d = Math.sqrt(dX*dX + dY*dY);
-      if (d < minDist) { minDist = d; target = badGuys[k]; }
-    }
-    if (fX < target.x) fX += fSpeed; if (fX > target.x) fX -= fSpeed;
-    if (fY < target.y) fY += fSpeed; if (fY > target.y) fY -= fSpeed;
-    if (minDist < 60 && fAtkCooldown === 0) { fSwing = true; fAtkCooldown = 12; beep(400, "sine", 0.04); }
-  } else {
-    var dX = pX - fX - 40, dY = pY - fY - 40;
-    if (Math.sqrt(dX*dX + dY*dY) > 50) {
-      if (fX < pX - 40) fX += fSpeed; if (fX > pX - 40) fX -= fSpeed;
-      if (fY < pY - 40) fY += fSpeed; if (fY > pY - 40) fY -= fSpeed;
-    }
-  }
-
-  for (var i = badGuys.length - 1; i >= 0; i--) {
-    var e = badGuys[i];
-    
-    if (e.isBoss) {
-      e.stateTimer++;
-      if (e.state === "chase") {
-        if (e.x < pX) e.x += e.spd; if (e.x > pX) e.x -= e.spd;
-        if (e.y < pY) e.y += e.spd; if (e.y > pY) e.y -= e.spd;
-        if (e.stateTimer > 45) {
-          e.state = "windup"; e.stateTimer = 0;
-          beep(200, "sawtooth", 0.1);
-        }
-      } else if (e.state === "windup") {
-        if (e.stateTimer > 15) {
-          e.state = "dash"; e.stateTimer = 0;
-          var angle = Math.atan2(pY - e.y, pX - e.x);
-          e.targetX = Math.cos(angle) * (e.spd * 4);
-          e.targetY = Math.sin(angle) * (e.spd * 4);
-          beep(500, "sawtooth", 0.1);
-        }
-      } else if (e.state === "dash") {
-        e.x += e.targetX; e.y += e.targetY;
-        if (e.stateTimer > 10) { e.state = "chase"; e.stateTimer = 0; }
-      }
-    } else {
-      if (e.x < pX) e.x += e.spd; if (e.x > pX) e.x -= e.spd;
-      if (e.y < pY) e.y += e.spd; if (e.y > pY) e.y -= e.spd;
-    }
-
-    var hJ = swing && (e.x > pX - 60 && e.x < pX + 60 && e.y > pY - 60 && e.y < pY + 60);
-    var hF = fSwing && (e.x > fX - 60 && e.x < fX + 60 && e.y > fY - 60 && e.y < fY + 60);
-    if (hJ || hF) {
-      e.hp -= atk; beep(600, "square", 0.02);
-      if (e.hp <= 0) {
-        if (e.isBoss) { bossCount++; xp += 100; beep(880, "sine", 0.3); document.getElementById("dialogueText").innerHTML = "Outstanding! Level upgraded."; } else { xp += 15; }
-        badGuys.splice(i, 1); checkLvl(); continue;
-      }
-    }
-    if (e.x > pX - e.size && e.x < pX + pSize && e.y > pY - e.size && e.y < pY + pSize) {
-      var dmgMod = e.isBoss && e.state === "dash" ? 3 : 1;
-      hp -= (e.atk * 0.04) * dmgMod; if (Math.random() < 0.1) beep(120, "sawtooth", 0.04);
-      if (hp <= 0) { hp = 0; clearInterval(loop); gameOver(); }
-    }
-  }
-  document.getElementById("stats").innerHTML = "Lvl: " + lvl + " | Rm: " + roomX + "," + roomY + "<br>HP: " + Math.ceil(hp) + " / " + maxHp + "<br>XP: " + xp + " / " + maxXp + "<br>Bosses: " + bossCount + " / 100";
+if (hp <= 0) return;
+if (keys['w'] || keys['W'] || keys['ArrowUp']) pY -= pSpeed;
+if (keys['s'] || keys['S'] || keys['ArrowDown']) pY += pSpeed;
+if (keys['a'] || keys['A'] || keys['ArrowLeft']) pX -= pSpeed;
+if (keys['d'] || keys['D'] || keys['ArrowRight']) pX += pSpeed;
+if (pX < -10) { roomX--; pX = canvas.width - 20; populateRoom(); fX = pX; }
+if (pX > canvas.width + 10) { roomX++; pX = 20; populateRoom(); fX = pX; }
+if (pY < -10) { roomY++; pY = canvas.height - 20; populateRoom(); fY = pY; }
+if (pY > canvas.height + 10) { roomY--; pY = 20; populateRoom(); fY = pY; }
+if (swing) { swingTime++; if (swingTime > 4) { swing = false; swingTime = 0; } }
+if (fSwing) { fSwingTime++; if (fSwingTime > 4) { fSwing = false; fSwingTime = 0; } }
+if (fAtkCooldown > 0) fAtkCooldown--;
+for (var p = powerUps.length - 1; p >= 0; p--) {
+var item = powerUps[p];
+if (pX > item.x - pSize && pX < item.x + item.size && pY > item.y - pSize && pY < item.y + item.size) {
+if (item.type === "speed") {
+pSpeed += 1.5;
+document.getElementById("dialogueText").innerHTML = "System: Speed core overloaded! Movement velocity boosted.";
+beep(750, "sine", 0.15);
 }
-
+powerUps.splice(p, 1);
+}
+}
+if (badGuys.length > 0) {
+var target = null, minDist = 9999;
+for (var k = 0; k < badGuys.length; k++) {
+var dX = badGuys[k].x - fX, dY = badGuys[k].y - fY;
+var d = Math.sqrt(dXdX + dYdY);
+if (d < minDist) { minDist = d; target = badGuys[k]; }
+}
+if (target) {
+if (fX < target.x) fX += fSpeed; if (fX > target.x) fX -= fSpeed;
+if (fY < target.y) fY += fSpeed; if (fY > target.y) fY -= fSpeed;
+if (minDist < 75 && fAtkCooldown === 0) { fSwing = true; fAtkCooldown = 10; beep(380, "sine", 0.05); }
+}
+} else {
+var dX = pX - fX - 45, dY = pY - fY - 45;
+if (Math.sqrt(dXdX + dYdY) > 60) {
+if (fX < pX - 45) fX += fSpeed; if (fX > pX - 45) fX -= fSpeed;
+if (fY < pY - 45) fY += fSpeed; if (fY > pY - 45) fY -= fSpeed;
+}
+}
+for (var i = badGuys.length - 1; i >= 0; i--) {
+var e = badGuys[i];
+if (e.isBoss) {
+e.stateTimer++;
+if (e.state === "chase") {
+if (e.x < pX) e.x += e.spd; if (e.x > pX) e.x -= e.spd;
+if (e.y < pY) e.y += e.spd; if (e.y > pY) e.y -= e.spd;
+if (e.stateTimer > 40) { e.state = "windup"; e.stateTimer = 0; beep(180, "sawtooth", 0.1); }
+} else if (e.state === "windup") {
+if (e.stateTimer > 12) {
+e.state = "dash"; e.stateTimer = 0;
+var angle = Math.atan2(pY - e.y, pX - e.x);
+e.targetX = Math.cos(angle) * (e.spd * 3.5);
+e.targetY = Math.sin(angle) * (e.spd * 3.5);
+beep(480, "sawtooth", 0.08);
+}
+} else if (e.state === "dash") {
+e.x += e.targetX; e.y += e.targetY;
+if (e.stateTimer > 8) { e.state = "chase"; e.stateTimer = 0; }
+}
+} else {
+if (e.x < pX) e.x += e.spd; if (e.x > pX) e.x -= e.spd;
+if (e.y < pY) e.y += e.spd; if (e.y > pY) e.y -= e.spd;
+}
+var hJ = swing && (e.x > pX - 65 && e.x < pX + 65 && e.y > pY - 65 && e.y < pY + 65);
+var hF = fSwing && (e.x > fX - 65 && e.x < fX + 65 && e.y > fY - 65 && e.y < fY + 65);
+if (hJ || hF) {
+e.hp -= atk;
+beep(650, "square", 0.02);
+if (e.hp <= 0) {
+if (e.isBoss) {
+bossCount++; xp += 120; beep(900, "sine", 0.3);
+document.getElementById("dialogueText").innerHTML = "Freddie: Critical anomaly terminated! Boss node shattered.";
+} else {
+xp += 12;
+}
+badGuys.splice(i, 1); checkLvl(); continue;
+}
+}
+if (e.x > pX - e.size && e.x < pX + pSize && e.y > pY - e.size && e.y < pY + pSize) {
+var multiplier = e.isBoss && e.state === "dash" ? 2.5 : 1;
+hp -= (e.atk * 0.05) * multiplier;
+if (Math.random() < 0.08) beep(110, "sawtooth", 0.04);
+if (hp <= 0) { hp = 0; clearInterval(loop); gameOver(); }
+}
+}
+document.getElementById("stats").innerHTML = "Lvl: " + lvl + " | Room: " + roomX + "," + roomY + "
+HP: " + Math.ceil(hp) + " / " + maxHp + "
+XP: " + xp + " / " + maxXp + "
+SPD: " + pSpeed.toFixed(1) + "
+Bosses: " + bossCount + " / 100";
+}
 function checkLvl() {
-  if (xp >= maxXp) {
-    xp -= maxXp; lvl++; maxXp = Math.floor(maxXp * 1.5);
-    maxHp += 20; hp = maxHp; atk += 6; beep(523, "triangle", 0.2);
-  }
+if (xp >= maxXp) {
+xp -= maxXp; lvl++; maxXp = Math.floor(maxXp * 1.4);
+maxHp += 25; hp = maxHp; atk += 5;
+beep(523, "triangle", 0.15);
+setTimeout(function() { beep(659, "triangle", 0.15); }, 80);
 }
-
+}
 function draw() {
-  ctx.fillStyle = "#1e1e1e"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.strokeStyle = "#2a2a2a";
-  for(var g = 0; g < canvas.width; g += 40) { ctx.beginPath(); ctx.moveTo(g, 0); ctx.lineTo(g, canvas.height); ctx.stroke(); }
-  for(var g = 0; g < canvas.height; g += 40) { ctx.beginPath(); ctx.moveTo(0, g); ctx.lineTo(canvas.width, g); ctx.stroke(); }
-
-  ctx.fillStyle = "#0f0"; ctx.fillRect(pX, pY, pSize, pSize);
-  try { ctx.drawImage(johnImg, pX, pY, pSize, pSize); } catch(e) {}
-  if (swing) { ctx.fillStyle = "rgba(0,255,255,0.4)"; ctx.fillRect(pX-15, pY-15, pSize+30, pSize+30); }
-
-  ctx.fillStyle = "#ff0"; ctx.fillRect(fX, fY, fSize, fSize);
-  try { ctx.drawImage(freddieImg, fX, fY, fSize, fSize); } catch(e) {}
-  if (fSwing) { ctx.fillStyle = "rgba(255,0,255,0.4)"; ctx.fillRect(fX-15, fY-15, fSize+30, fSize+30); }
-
-  for (var i = 0; i < badGuys.length; i++) {
-    var e = badGuys[i];
-    if (e.isBoss) {
-      ctx.fillStyle = e.state === "windup" ? "#ff8800" : (e.state === "dash" ? "#ffff00" : "#f0f");
-    } else {
-      ctx.fillStyle = "#f33";
-    }
-    ctx.fillRect(e.x, e.y, e.size, e.size);
-    ctx.fillStyle = "red"; ctx.fillRect(e.x, e.y - 10, e.size, 4);
-    ctx.fillStyle = "green"; ctx.fillRect(e.x, e.y - 10, e.size * (e.hp / e.maxHp), 4);
-  }
+ctx.fillStyle = "#020208"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+ctx.strokeStyle = "#120824"; ctx.lineWidth = 1;
+for(var g = 0; g < canvas.width; g += 50) { ctx.beginPath(); ctx.moveTo(g, 0); ctx.lineTo(g, canvas.height); ctx.stroke(); }
+for(var g = 0; g < canvas.height; g += 50) { ctx.beginPath(); ctx.moveTo(0, g); ctx.lineTo(canvas.width, g); ctx.stroke(); }
+for (var i = 0; i < powerUps.length; i++) {
+ctx.fillStyle = "#ff00ff"; ctx.fillRect(powerUps[i].x, powerUps[i].y, powerUps[i].size, powerUps[i].size);
+ctx.strokeStyle = "#fff"; ctx.strokeRect(powerUps[i].x, powerUps[i].y, powerUps[i].size, powerUps[i].size);
 }
-
+ctx.fillStyle = "#00ffcc"; ctx.fillRect(pX, pY, pSize, pSize);
+try { ctx.drawImage(johnImg, pX, pY, pSize, pSize); } catch(e) {}
+if (swing) { ctx.fillStyle = "rgba(0,255,255,0.3)"; ctx.fillRect(pX-15, pY-15, pSize+30, pSize+30); }
+ctx.fillStyle = "#ffcc00"; ctx.fillRect(fX, fY, fSize, fSize);
+try { ctx.drawImage(freddieImg, fX, fY, fSize, fSize); } catch(e) {}
+if (fSwing) { ctx.fillStyle = "rgba(255,0,255,0.3)"; ctx.fillRect(fX-15, fY-15, fSize+30, fSize+30); }
+for (var i = 0; i < badGuys.length; i++) {
+var e = badGuys[i];
+if (e.isBoss) {
+ctx.fillStyle = e.state === "windup" ? "#ff5500" : (e.state === "dash" ? "#ffffff" : "#ff00aa");
+} else {
+ctx.fillStyle = "#ff3333";
+}
+ctx.fillRect(e.x, e.y, e.size, e.size);
+ctx.fillStyle = "#330000"; ctx.fillRect(e.x, e.y - 12, e.size, 4);
+ctx.fillStyle = "#00ff00"; ctx.fillRect(e.x, e.y - 12, e.size * (e.hp / e.maxHp), 4);
+}
+}
 function gameOver() {
-  ctx.fillStyle = "rgba(0,0,0,0.9)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "red"; ctx.font = "30px monospace"; ctx.fillText("GAME OVER", canvas.width / 2 - 70, canvas.height / 2);
-  document.getElementById("rstBtn").style.display = "block";
+ctx.fillStyle = "rgba(5,0,10,0.95)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+ctx.fillStyle = "#ff0055"; ctx.font = "bold 32px monospace"; ctx.fillText("MATRIX DISCONNECTED", canvas.width / 2 - 160, canvas.height / 2);
+document.getElementById("rstBtn").style.display = "block";
 }
-
 window.addEventListener("keydown", function(e) {
-  keys[e.key] = true;
-  if (e.code === "Space") {
-    e.preventDefault(); if (!swing && hp > 0) { swing = true; swingTime = 0; beep(350, "sine", 0.04); }
-  }
+keys[e.key] = true;
+if (e.code === "Space") {
+e.preventDefault();
+if (!swing && hp > 0) { swing = true; swingTime = 0; beep(320, "sine", 0.05); }
+}
 });
 window.addEventListener("keyup", function(e) { keys[e.key] = false; });
 resetGame();
