@@ -1,506 +1,116 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta name="p:domain_verify" content="e6a8179dc32af24445f891537ba7885a"/>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Queen0fTheNight // DontPlayHardToGet</title>
+    <title>Queen Fan Page</title>
     <style>
-        :root {
-            --bg-color: #0a0508;
-            --velvet-red: #4a0014;
-            --neon-pink: #ff2a6d;
-            --champagne: #f4e8c1;
-            --gunmetal: #12121a;
-            --card-bg: #16151f;
-        }
-
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            user-select: none;
-        }
-
+        /* CSS STYLES */
         body {
-            background-color: var(--bg-color);
-            background-image: 
-                linear-gradient(rgba(10, 5, 8, 0.96), rgba(10, 5, 8, 0.96)),
-                radial-gradient(circle at 50% 50%, var(--velvet-red) 0%, transparent 80%);
-            color: var(--champagne);
-            font-family: 'Cinzel', 'Didot', 'Bodoni MT', serif;
-            min-height: 250vh;
-            overflow-x: hidden;
-            scroll-behavior: smooth;
-        }
-
-        /* Custom sleek scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--bg-color);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: var(--velvet-red);
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: var(--neon-pink);
-        }
-
-        #sparkle-canvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none;
-            z-index: 1;
-        }
-
-        .scroll-progress {
-            position: fixed;
-            top: 0;
-            left: 0;
-            height: 3px;
-            background: linear-gradient(90deg, var(--velvet-red), var(--neon-pink));
-            width: 0%;
-            z-index: 100;
-        }
-
-        .user-tag {
-            position: fixed;
-            top: 30px;
-            right: 40px;
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            letter-spacing: 4px;
-            color: var(--neon-pink);
-            text-transform: uppercase;
-            text-shadow: 0 0 10px rgba(255, 42, 109, 0.4);
-            z-index: 90;
-        }
-
-        header {
-            height: 90vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            position: relative;
-            z-index: 2;
-            text-align: center;
-            padding: 0 20px;
-        }
-
-        .main-title {
-            font-size: clamp(2.5rem, 6.5vw, 6rem);
-            font-weight: 400;
-            text-transform: uppercase;
-            letter-spacing: 8px;
-            line-height: 1.1;
-            margin-bottom: 20px;
-            background: linear-gradient(180deg, #fff 30%, var(--champagne) 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .subtitle {
+            background-color: #f5f5f5;
             font-family: sans-serif;
-            font-size: clamp(0.7rem, 2vw, 0.85rem);
-            text-transform: uppercase;
-            letter-spacing: 6px;
-            color: #8a7379;
-            margin-bottom: 40px;
+            margin: 20px;
         }
 
-        .glass-trigger {
-            background: rgba(22, 21, 31, 0.6);
-            border: 1px solid rgba(244, 232, 193, 0.2);
-            padding: 16px 36px;
-            font-size: 0.8rem;
-            color: var(--champagne);
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            cursor: pointer;
-            backdrop-filter: blur(10px);
-            transition: all 0.4s ease;
-            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+        /* Simple box for About Me */
+        .about-section {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #dddddd;
+            margin-bottom: 30px;
         }
 
-        .glass-trigger:hover {
-            border-color: var(--neon-pink);
-            color: #fff;
-            box-shadow: 0 0 25px rgba(255, 42, 109, 0.3);
-            transform: translateY(-2px);
-        }
-
-        .lyric-overlay {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0.95);
-            font-size: clamp(1.6rem, 4vw, 3.5rem);
-            font-style: italic;
+        .title-members {
             text-align: center;
-            width: 80%;
-            color: #fff;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 80;
-            transition: all 0.5s ease;
-            text-shadow: 0 0 40px var(--velvet-red);
-            font-family: Garamond, serif;
         }
 
-        .lyric-overlay.show {
-            opacity: 1;
-            transform: translate(-50%, -50%) scale(1);
-        }
-
-        /* Band Portrait Grid */
-        .band-gallery {
-            max-width: 1200px;
-            margin: 0 auto 100px auto;
-            padding: 0 20px;
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 20px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .member-profile {
-            background: var(--gunmetal);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            padding: 15px;
+        /* Simple layout technique */
+        .members-container {
             text-align: center;
-            transition: transform 0.4s ease;
         }
 
-        .member-profile:hover {
-            transform: scale(1.03);
-            border-color: var(--neon-pink);
-        }
-
-        .portrait-frame {
-            width: 100%;
-            height: 280px;
-            overflow: hidden;
-            background: #000;
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .portrait-frame img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            object-position: center top;
-            filter: grayscale(100%) contrast(110%);
-            transition: filter 0.5s ease;
-        }
-
-        .member-profile:hover .portrait-frame img {
-            filter: grayscale(20%) contrast(100%);
-        }
-
-        .member-name {
-            font-size: 1.1rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: #fff;
-            margin-bottom: 5px;
-        }
-
-        .member-role {
-            font-size: 0.7rem;
-            font-family: monospace;
-            color: var(--neon-pink);
-            letter-spacing: 1px;
-        }
-
-        /* Portfolio & Navigation Grid */
-        .showcase-container {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0 20px 100px 20px;
-            position: relative;
-            z-index: 2;
-        }
-
-        .section-divider {
-            font-size: 0.8rem;
-            letter-spacing: 10px;
-            text-transform: uppercase;
-            color: var(--champagne);
-            text-align: center;
-            margin-bottom: 60px;
-            opacity: 0.6;
-        }
-
-        .grid-layout {
-            display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 30px;
-        }
-
-        .vibe-card {
-            background: var(--card-bg);
-            border: 1px solid rgba(255,255,255,0.02);
-            padding: 40px;
-            text-decoration: none;
-            color: var(--champagne);
-            transition: transform 0.4s ease, border-color 0.4s ease;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-        }
-
-        .vibe-card:hover {
-            transform: translateY(-5px);
-            border-color: rgba(255, 42, 109, 0.4);
-        }
-
-        .card-large { grid-column: span 8; }
-        .card-small { grid-column: span 4; }
-        .card-full { grid-column: span 12; }
-
-        .tag-status {
+        /* Individual member cards stacked side-by-side */
+        .member-box {
             display: inline-block;
-            background: var(--velvet-red);
-            color: #fff;
-            font-family: monospace;
-            font-size: 0.7rem;
-            padding: 4px 10px;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            margin-bottom: 20px;
-            border-left: 2px solid var(--neon-pink);
+            background-color: white;
+            width: 200px;
+            margin: 15px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            vertical-align: top;
         }
 
-        .card-title {
-            font-size: 1.8rem;
-            font-weight: 400;
-            letter-spacing: 2px;
-            margin-bottom: 15px;
-            color: #fff;
+        .member-box img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover; /* Keeps image square */
         }
 
-        .card-desc {
-            font-family: sans-serif;
-            font-size: 0.9rem;
-            line-height: 1.6;
-            color: #a09ba2;
+        .member-box button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
         }
 
-        .card-link {
-            margin-top: 30px;
-            font-size: 0.8rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            color: var(--neon-pink);
-        }
-
-        .reveal {
-            opacity: 0;
-            transform: translateY(30px);
-            transition: opacity 0.8s ease, transform 0.8s ease;
-        }
-
-        .reveal.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        @media (max-width: 900px) {
-            .band-gallery { grid-template-columns: repeat(2, 1fr); }
-            .card-large, .card-small { grid-column: span 12; }
+        .member-box button:hover {
+            background-color: red; /* Changes color when hovered */
         }
     </style>
 </head>
 <body>
 
-    <div class="scroll-progress" id="progress"></div>
-    <div class="user-tag">@DontPlayHardToGet</div>
-    <canvas id="sparkle-canvas"></canvas>
+    <!-- About Me Section -->
+    <div class="about-section">
+        <h1>About Me</h1>
+        <p>Hi! I am a huge music fan and Queen is my favorite band of all time. I made this simple page to showcase the four legendary members and listen to their iconic sounds.</p>
+    </div>
 
-    <div class="lyric-overlay" id="lyric-box">"Caviar and cigarettes, well versed in etiquette..."</div>
+    <h2 class="title-members">The Members of Queen</h2>
 
-    <header>
-        <h1 class="main-title">Queen0fTheNight</h1>
-        <p class="subtitle">Art, Commissions & Archival Design</p>
-        <button class="glass-trigger" onclick="pourChampagne()">Drop the Needle</button>
-    </header>
-
-    <div class="section-divider reveal">✦ The Lineup ✦</div>
-    <section class="band-gallery reveal">
-        <div class="member-profile">
-            <div class="portrait-frame">
-                <img src="https://files.catbox.moe/hw48or.jpg" alt="Freddie Mercury">
-            </div>
-            <h3 class="member-name">Freddie</h3>
-            <span class="member-role">Vocal Masterpiece</span>
+    <!-- Members Container -->
+    <div class="members-container">
+        
+        <!-- Freddie Mercury -->
+        <div class="member-box">
+            <img src="freddie.jpg" alt="Freddie Mercury">
+            <h3>Freddie Mercury</h3>
+            <button onclick="playSound('freddie-audio')">Play Sound</button>
+            <audio id="freddie-audio" src="freddie.mp3"></audio>
         </div>
-        <div class="member-profile">
-            <div class="portrait-frame">
-                <img src="https://files.catbox.moe/g9jg2e.jpg" alt="Brian May">
-            </div>
-            <h3 class="member-name">Brian</h3>
-            <span class="member-role">Orchestral Guitar</span>
+
+        <!-- Brian May -->
+        <div class="member-box">
+            <img src="brian.jpg" alt="Brian May">
+            <h3>Brian May</h3>
+            <button onclick="playSound('brian-audio')">Play Sound</button>
+            <audio id="brian-audio" src="brian.mp3"></audio>
         </div>
-        <div class="member-profile">
-            <div class="portrait-frame">
-                <img src="https://files.catbox.moe/ttew2u.jpg" alt="Roger Taylor">
-            </div>
-            <h3 class="member-name">Roger</h3>
-            <span class="member-role">Sonic Percussion</span>
+
+        <!-- Roger Taylor -->
+        <div class="member-box">
+            <img src="roger.jpg" alt="Roger Taylor">
+            <h3>Roger Taylor</h3>
+            <button onclick="playSound('roger-audio')">Play Sound</button>
+            <audio id="roger-audio" src="roger.mp3"></audio>
         </div>
-        <div class="member-profile">
-            <div class="portrait-frame">
-                <img src="https://files.catbox.moe/lqnj7k.jpg" alt="John Deacon">
-            </div>
-            <h3 class="member-name">John</h3>
-            <span class="member-role">The Baseline</span>
+
+        <!-- John Deacon -->
+        <div class="member-box">
+            <img src="john.jpg" alt="John Deacon">
+            <h3>John Deacon</h3>
+            <button onclick="playSound('john-audio')">Play Sound</button>
+            <audio id="john-audio" src="john.mp3"></audio>
         </div>
-    </section>
 
-    <main class="showcase-container">
-        <div class="section-divider reveal">✦ Portals & Business ✦</div>
+    </div>
 
-        <div class="grid-layout">
-            
-            <a href="https://www.pinterest.com/DontPlayHardToGet/?actingBusinessId=1147010736254828767" target="_blank" class="vibe-card card-large reveal">
-                <div>
-                    <span class="tag-status">Active Feed</span>
-                    <h2 class="card-title">Official Lookbook Outlet</h2>
-                    <p class="card-desc">Where I house all curated Queen archival assets, graphic concepts, and stylistic design threads. Updated around the clock.</p>
-                </div>
-                <div class="card-link">Enter Outlet →</div>
-            </a>
-
-            <a href="https://forms.gle/FVHi1bw6CYaxAB5w8" target="_blank" class="vibe-card card-small reveal">
-                <div>
-                    <span class="tag-status" style="background:#00ff66; color:#000;">Open</span>
-                    <h2 class="card-title">Commissions</h2>
-                    <p class="card-desc">Request uploads on pinterest, or art commisions.</p>
-                </div>
-                <div class="card-link" style="color:#00ff66;">Secure Spot →</div>
-            </a>
-
-            <a href="https://youtube.com/@gasp_helloo?si=jJO4k52HPjF0cBDB" target="_blank" class="vibe-card card-small reveal">
-                <div>
-                    <span class="tag-status">Broadcast</span>
-                    <h2 class="card-title">Media Feed</h2>
-                    <p class="card-desc">Video sequences, visual speed-arts, and high-fidelity project overviews.</p>
-                </div>
-                <div class="card-link">View Channel →</div>
-            </a>
-
-            <a href="https://pin.it/4D7vIcRYN" target="_blank" class="vibe-card card-large reveal">
-                <div>
-                    <span class="tag-status">Portfolio</span>
-                    <h2 class="card-title">Art & Production Vault</h2>
-                    <p class="card-desc">Browse through images that inspire my are creations.</p>
-                </div>
-                <div class="card-link">Inspect Art →</div>
-            </a>
-
-            <div class="vibe-card card-full reveal" style="text-align: center; justify-content: center; align-items: center; min-height: 100px; background: transparent; border: none;">
-                <p style="font-family: monospace; font-size: 0.7rem; letter-spacing: 3px; color: #4e4447;">DONTPLAYHARDTOGET // DESIGN HUB</p>
-            </div>
-
-        </div>
-    </main>
-
+    <!-- JAVASCRIPT CODE -->
     <script>
-        // Progress bar controller
-        window.addEventListener('scroll', () => {
-            const winScroll = document.documentElement.scrollTop;
-            const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
-            const scrolled = (winScroll / height) * 100;
-            document.getElementById('progress').style.width = scrolled + '%';
-        });
-
-        // Ambiance Canvas
-        const canvas = document.getElementById('sparkle-canvas');
-        const ctx = canvas.getContext('2d');
-        let particles = [];
-
-        function resizeCanvas() {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
+        function playSound(id) {
+            var sound = document.getElementById(id);
+            sound.play();
         }
-        window.addEventListener('resize', resizeCanvas);
-        resizeCanvas();
-
-        class Particle {
-            constructor() {
-                this.x = Math.random() * canvas.width;
-                this.y = Math.random() * canvas.height;
-                this.size = Math.random() * 1.2 + 0.4;
-                this.speedY = -(Math.random() * 0.3 + 0.1);
-                this.opacity = Math.random() * 0.4 + 0.1;
-            }
-            update() {
-                this.y += this.speedY;
-                if (this.y < 0) {
-                    this.y = canvas.height;
-                    this.x = Math.random() * canvas.width;
-                }
-            }
-            draw() {
-                ctx.fillStyle = `rgba(244, 232, 193, ${this.opacity})`;
-                ctx.fillRect(this.x, this.y, this.size, this.size);
-            }
-        }
-
-        for (let i = 0; i < 35; i++) {
-            particles.push(new Particle());
-        }
-
-        function animateParticles() {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            particles.forEach(p => {
-                p.update();
-                p.draw();
-            });
-            requestAnimationFrame(animateParticles);
-        }
-        animateParticles();
-
-        // Lyric Engine
-        const lyrics = [
-            "\"She's a Killer Queen, gunpowder, gelatine...\"",
-            "\"Dynamite with a laser beam, guaranteed to blow your mind.\"",
-            "\"Caviar and cigarettes, well versed in etiquette.\"",
-            "\"To avoid complications, she never kept the same address.\"",
-            "\"Drop of a hat she's as playful as a pussycat.\""
-        ];
-        let lyricIdx = 0;
-        const lyricBox = document.getElementById('lyric-box');
-
-        function pourChampagne() {
-            lyricBox.innerText = lyrics[lyricIdx];
-            lyricBox.classList.add('show');
-            lyricIdx = (lyricIdx + 1) % lyrics.length;
-            setTimeout(() => { lyricBox.classList.remove('show'); }, 2200);
-        }
-
-        // Scroll Engine
-        const revealElements = document.querySelectorAll('.reveal');
-        const checkReveal = () => {
-            const triggerBottom = window.innerHeight * 0.88;
-            revealElements.forEach(el => {
-                const boxTop = el.getBoundingClientRect().top;
-                if (boxTop < triggerBottom) {
-                    el.classList.add('visible');
-                }
-            });
-        };
-        window.addEventListener('scroll', checkReveal);
-        checkReveal();
     </script>
+
 </body>
 </html>
