@@ -40,6 +40,7 @@
             height: 80px;
             object-fit: cover;
             border: 1px solid #fff;
+            background: #555;
         }
         .btn {
             background: #ff0;
@@ -79,29 +80,25 @@
 
     <h2>The Band</h2>
     <div id="band-space">
-        <!-- Freddie -->
         <div class="members">
             <img src="https://picsum.photos" alt="Freddie">
             <div>Freddie</div>
-            <button class="btn" onclick="playAudio()">Sound</button>
+            <button class="btn" onclick="playAudio(261)">Sound</button>
         </div>
-        <!-- Brian -->
         <div class="members">
             <img src="https://picsum.photos" alt="Brian">
             <div>Brian</div>
-            <button class="btn" onclick="playAudio()">Sound</button>
+            <button class="btn" onclick="playAudio(329)">Sound</button>
         </div>
-        <!-- Roger -->
         <div class="members">
             <img src="https://picsum.photos" alt="Roger">
             <div>Roger</div>
-            <button class="btn" onclick="playAudio()">Sound</button>
+            <button class="btn" onclick="playAudio(392)">Sound</button>
         </div>
-        <!-- John -->
         <div class="members">
-            <img src="https://wikimedia.org" alt="John">
+            <img src="https://picsum.photos" alt="John">
             <div>John</div>
-            <button class="btn" onclick="playAudio()">Sound</button>
+            <button class="btn" onclick="playAudio(196)">Sound</button>
         </div>
     </div>
 
@@ -113,23 +110,26 @@
     <div class="controls">
         <p>CONTROLS: Press <strong>SPACEBAR</strong> to Swing Sword!</p>
         <p>Defeat the oncoming target blocks before they touch John!</p>
-        <p id="scoreBox">Score: 0 | Health: 3</p>
+        <h3 id="scoreBox">Score: 0 | Health: 3</h3>
     </div>
 </div>
 
 <script>
-    // Fake audio buzzer for beginner style context
-    function playAudio() {
+    // Audio synthesizer engine for retro 8-bit sound effects
+    function playAudio(freq) {
         var context = new (window.AudioContext || window.webkitAudioContext)();
         var osc = context.createOscillator();
+        var gain = context.createGain();
         osc.type = "square";
-        osc.frequency.setValueAtTime(220, context.currentTime);
-        osc.connect(context.destination);
+        osc.frequency.setValueAtTime(freq, context.currentTime);
+        gain.gain.setValueAtTime(0.1, context.currentTime);
+        osc.connect(gain);
+        gain.connect(context.destination);
         osc.start();
-        osc.stop(context.currentTime + 0.1);
+        osc.stop(context.currentTime + 0.15);
     }
 
-    // Game Variables
+    // Game Core State Variables
     var canvas = document.getElementById("gameCanvas");
     var ctx = canvas.getContext("2d");
     var loop;
@@ -139,12 +139,13 @@
     var swordTimer = 0;
     var enemies = [];
 
-    // Load Player Image
+    // Verified public cross-origin image sources
     var playerImg = new Image();
-    playerImg.src = "https://wikimedia.org";
+    playerImg.crossOrigin = "anonymous";
+    playerImg.src = "https://picsum.photos";
 
-    // Load Enemy Image Box (Placeholder link you can swap out easily)
     var enemyImg = new Image();
+    enemyImg.crossOrigin = "anonymous";
     enemyImg.src = "https://picsum.photos";
 
     function initGame() {
@@ -156,6 +157,7 @@
         
         if(loop) clearInterval(loop);
         loop = setInterval(gameLoop, 1000 / 30);
+        playAudio(440);
     }
 
     function gameLoop() {
@@ -164,7 +166,6 @@
     }
 
     function update() {
-        // Handle Sword Timer
         if (swordActive) {
             swordTimer++;
             if (swordTimer > 5) {
@@ -173,7 +174,7 @@
             }
         }
 
-        // Spawn Enemies
+        // Enemy generation manager
         if (Math.random() < 0.03) {
             enemies.push({
                 x: canvas.width,
@@ -184,26 +185,27 @@
             });
         }
 
-        // Move and Check Enemies
+        // Collision detection and movement cycle
         for (var i = enemies.length - 1; i >= 0; i--) {
             enemies[i].x -= enemies[i].speed;
 
-            // Check Sword Hit
+            // Attack validation
             if (swordActive && enemies[i].x < 110 && enemies[i].x > 50) {
                 enemies.splice(i, 1);
                 score++;
+                playAudio(587);
                 continue;
             }
 
-            // Check Player Collision
+            // Impact check against player zone
             if (enemies[i].x <= 60) {
                 enemies.splice(i, 1);
                 health--;
+                playAudio(147);
                 if (health <= 0) {
                     clearInterval(loop);
-                    ctx.fillStyle = "red";
-                    ctx.font = "30px monospace";
-                    ctx.fillText("GAME OVER", 120, 150);
+                    drawGameOver();
+                    return;
                 }
             }
         }
@@ -211,11 +213,10 @@
     }
 
     function draw() {
-        // Clear background
         ctx.fillStyle = "#000";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-        // Draw Floor line
+        // Ground track platform
         ctx.strokeStyle = "#fff";
         ctx.lineWidth = 2;
         ctx.beginPath();
@@ -223,10 +224,17 @@
         ctx.lineTo(canvas.width, 170);
         ctx.stroke();
 
-        // Draw Player Image
-        ctx.drawImage(playerImg, 20, 120, 40, 40);
+        // Draw Player Sprite (With color block backup)
+        ctx.fillStyle = "#0f0";
+        ctx.fillRect(20, 120, 40, 40);
+        try {
+            ctx.drawImage(playerImg, 20, 120, 40, 40);
+        } catch(e) {}
+        ctx.fillStyle = "#fff";
+        ctx.font = "10px monospace";
+        ctx.fillText("JOHN", 25, 115);
 
-        // Draw Sword
+        // Draw Sword Weapon System
         if (swordActive) {
             ctx.fillStyle = "#0ff";
             ctx.fillRect(65, 130, 40, 10);
@@ -235,20 +243,32 @@
             ctx.fillRect(55, 120, 10, 20);
         }
 
-        // Draw Enemies
+        // Draw Enemy Grid Array (With color block backup)
         for (var i = 0; i < enemies.length; i++) {
-            ctx.drawImage(enemyImg, enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height);
-            // Red visual border outline around enemy boxes
-            ctx.strokeStyle = "red";
+            ctx.fillStyle = "#f00";
+            ctx.fillRect(enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height);
+            try {
+                ctx.drawImage(enemyImg, enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height);
+            } catch(e) {}
+            
+            ctx.strokeStyle = "yellow";
             ctx.strokeRect(enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height);
         }
     }
 
-    // Input Control
+    function drawGameOver() {
+        ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillStyle = "red";
+        ctx.font = "30px monospace";
+        ctx.fillText("GAME OVER", 120, 150);
+    }
+
+    // Capture user spacebar activity
     window.addEventListener("keydown", function(e) {
         if (e.code === "Space") {
             e.preventDefault();
-            if (!swordActive) {
+            if (!swordActive && health > 0) {
                 swordActive = true;
                 swordTimer = 0;
             }
