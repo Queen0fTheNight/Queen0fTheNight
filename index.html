@@ -1,1 +1,288 @@
-...
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Queen Fan Page & Mini Game</title>
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: sans-serif;
+            margin: 20px;
+        }
+
+        /* About Me Section */
+        .about-section {
+            background-color: white;
+            padding: 20px;
+            border: 1px solid #dddddd;
+            margin-bottom: 30px;
+        }
+
+        .title-members {
+            text-align: center;
+        }
+
+        .members-container {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+
+        /* Individual member cards */
+        .member-box {
+            display: inline-block;
+            background-color: white;
+            width: 200px;
+            margin: 15px;
+            padding: 15px;
+            border: 1px solid #ccc;
+            vertical-align: top;
+        }
+
+        .member-box img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .member-box button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            cursor: pointer;
+        }
+
+        .member-box button:hover {
+            background-color: red;
+        }
+
+        /* Game Section Styling */
+        .game-section {
+            background-color: #fff;
+            border: 1px solid #ccc;
+            padding: 20px;
+            text-align: center;
+            max-width: 500px;
+            margin: 0 auto 40px auto;
+        }
+
+        #gameCanvas {
+            background-color: #70c5ce; /* Flappy bird sky color */
+            border: 2px solid #333;
+            display: block;
+            margin: 15px auto;
+        }
+
+        .start-btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- About Me Section -->
+    <div class="about-section">
+        <h1>About Me</h1>
+        <p>Hi! I am a huge music fan and Queen is my favorite band of all time. I made this simple page to showcase the four legendary members, listen to their iconic sounds, and play a silly mini-game I coded!</p>
+    </div>
+
+    <h2 class="title-members">The Members of Queen</h2>
+
+    <!-- Members Container -->
+    <div class="members-container">
+        
+        <div class="member-box">
+            <img src="freddie.jpg" alt="Freddie Mercury">
+            <h3>Freddie Mercury</h3>
+            <button onclick="playSound('freddie-audio')">Play Sound</button>
+            <audio id="freddie-audio" src="freddie.mp3"></audio>
+        </div>
+
+        <div class="member-box">
+            <img src="brian.jpg" alt="Brian May">
+            <h3>Brian May</h3>
+            <button onclick="playSound('brian-audio')">Play Sound</button>
+            <audio id="brian-audio" src="brian.mp3"></audio>
+        </div>
+
+        <div class="member-box">
+            <img src="roger.jpg" alt="Roger Taylor">
+            <h3>Roger Taylor</h3>
+            <button onclick="playSound('roger-audio')">Play Sound</button>
+            <audio id="roger-audio" src="roger.mp3"></audio>
+        </div>
+
+        <div class="member-box">
+            <img src="john.jpg" alt="John Deacon">
+            <h3>John Deacon</h3>
+            <button onclick="playSound('john-audio')">Play Sound</button>
+            <audio id="john-audio" src="john.mp3"></audio>
+        </div>
+
+    </div>
+
+    <!-- Mini Game Section -->
+    <div class="game-section">
+        <h2>Flappy Deacon Arcade</h2>
+        <p>Help John Deacon fly past the obstacles! Press <strong>Spacebar</strong> or click the canvas to jump.</p>
+        <button class="start-btn" onclick="startGame()">Start / Restart Game</button>
+        <canvas id="gameCanvas" width="400" height="400"></canvas>
+    </div>
+
+    <!-- JAVASCRIPT FOR AUDIO AND GAME -->
+    <script>
+        // Audio function
+        function playSound(id) {
+            var sound = document.getElementById(id);
+            sound.play();
+        }
+
+        // --- FLAPPY BIRD GAME CODE ---
+        var canvas = document.getElementById("gameCanvas");
+        var ctx = canvas.getContext("2d");
+
+        var birdY, velocity, gravity, jump;
+        var pipes = [];
+        var score = 0;
+        var gameInterval;
+        var isPlaying = false;
+
+        // Load the bird image dynamically from the John Deacon image source
+        var deaconImg = new Image();
+        deaconImg.src = "john.jpg"; 
+
+        function startGame() {
+            if (gameInterval) clearInterval(gameInterval);
+            
+            // Reset game variables
+            birdY = 150;
+            velocity = 0;
+            gravity = 0.4;
+            jump = -7;
+            score = 0;
+            pipes = [];
+            isPlaying = true;
+
+            // Spawn first pipe
+            pipes.push({
+                x: canvas.width,
+                top: 100,
+                bottom: 150
+            });
+
+            // Start the basic human-style game loop (runs 60 times a second)
+            gameInterval = setInterval(updateGame, 1000 / 60);
+        }
+
+        function updateGame() {
+            // Physics
+            velocity += gravity;
+            birdY += velocity;
+
+            // Handle jumping
+            if (birdY > canvas.height - 30) {
+                birdY = canvas.height - 30;
+                gameOver();
+            }
+            if (birdY < 0) birdY = 0;
+
+            // Move pipes
+            for (var i = 0; i < pipes.length; i++) {
+                pipes[i].x -= 2; // Pipe moving speed
+
+                // Check collision with pipes
+                if (pipes[i].x < 50 + 30 && pipes[i].x + 40 > 50) {
+                    if (birdY < pipes[i].top || birdY + 30 > canvas.height - pipes[i].bottom) {
+                        gameOver();
+                    }
+                }
+
+                // Add points
+                if (pipes[i].x === 50) {
+                    score++;
+                }
+            }
+
+            // Delete old pipes and spawn new ones
+            if (pipes.length > 0 && pipes[0].x < -40) {
+                pipes.shift();
+            }
+
+            // Every 120 frames, add a new pipe with random height gaps
+            if (Math.random() < 0.01 && (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 200)) {
+                var topHeight = Math.floor(Math.random() * 150) + 50;
+                var bottomHeight = Math.floor(Math.random() * 150) + 50;
+                pipes.push({
+                    x: canvas.width,
+                    top: topHeight,
+                    bottom: bottomHeight
+                });
+            }
+
+            // DRAWING EVERYTHING
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw Sky background color
+            ctx.fillStyle = "#70c5ce";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw John Deacon (The Bird)
+            // If image fails to load, it falls back to a funny yellow square
+            try {
+                ctx.drawImage(deaconImg, 50, birdY, 35, 35);
+            } catch(e) {
+                ctx.fillStyle = "yellow";
+                ctx.fillRect(50, birdY, 30, 30);
+            }
+
+            // Draw Pipes (Styled like big retro music speakers/columns)
+            ctx.fillStyle = "#4a4a4a";
+            for (var i = 0; i < pipes.length; i++) {
+                // Top obstacle
+                ctx.fillRect(pipes[i].x, 0, 40, pipes[i].top);
+                // Bottom obstacle
+                ctx.fillRect(pipes[i].x, canvas.height - pipes[i].bottom, 40, pipes[i].bottom);
+            }
+
+            // Draw Score
+            ctx.fillStyle = "white";
+            ctx.font = "20px Arial";
+            ctx.fillText("Score: " + score, 15, 30);
+        }
+
+        function gameOver() {
+            clearInterval(gameInterval);
+            isPlaying = false;
+            ctx.fillStyle = "rgba(0, 0, 0, 0.5)";
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            ctx.fillStyle = "red";
+            ctx.font = "30px Arial";
+            ctx.textAlign = "center";
+            ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
+            ctx.textAlign = "left"; // reset alignment
+        }
+
+        // Jump controls via spacebar
+        window.addEventListener("keydown", function(e) {
+            if (e.code === "Space" && isPlaying) {
+                velocity = jump;
+                e.preventDefault(); // Stops page from scrolling down
+            }
+        });
+
+        // Jump controls via canvas clicks (for easier testing)
+        canvas.addEventListener("click", function() {
+            if (isPlaying) {
+                velocity = jump;
+            }
+        });
+    </script>
+
+</body>
+</html>
+
