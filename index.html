@@ -3,87 +3,53 @@
 <head>
 <title>Deacon Arena</title>
 <style>
-* {
-  box-sizing: border-box;
-}
+* { box-sizing: border-box; }
 html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background: #111;
-  color: #fff;
+  margin: 0; padding: 0;
+  width: 100%; height: 100%;
+  background: #111; color: #fff;
   font-family: monospace;
   overflow: hidden;
 }
 #gameUI {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  top: 10px; left: 10px;
   background: rgba(0,0,0,0.8);
   padding: 10px;
   border: 2px solid #ff0;
   z-index: 10;
-  max-width: 280px;
+  max-width: 250px;
 }
 #dialogue {
   position: absolute;
-  bottom: 20px;
-  left: 5%;
-  right: 5%;
+  bottom: 20px; left: 5%; right: 5%;
   background: rgba(20,20,20,0.95);
   border: 3px solid #0ff;
-  padding: 12px;
-  z-index: 10;
-  min-height: 70px;
-}
-#guideName {
-  color: #0ff;
-  font-weight: bold;
-  margin: 0 0 5px 0;
+  padding: 10px; z-index: 10;
 }
 #canvas {
   display: block;
-  width: 100vw;
-  height: 100vh;
-  background: #222;
+  width: 100vw; height: 100vh;
 }
 .btn {
-  background: #ff0;
-  color: #000;
-  border: none;
-  padding: 6px 12px;
-  font-weight: bold;
-  cursor: pointer;
-  display: none;
-  margin-top: 10px;
+  background: #ff0; color: #000;
+  border: none; padding: 5px;
+  font-weight: bold; cursor: pointer;
+  display: none; margin-top: 5px;
 }
 </style>
 </head>
 <body>
 
 <div id="gameUI">
-  <b style="color:#ff0;">DEACON QUEST</b>
-  <div id="stats">
-    Level: 1 | Room: 0,0<br>
-    HP: 100 / 100<br>
-    XP: 0 / 50<br>
-    Attack Power: 10<br>
-    Bosses Beat: 0 / 100
-  </div>
-  <button 
-    id="rstBtn" 
-    class="btn" 
-    onclick="resetGame()">
-    RESTART GAME
-  </button>
+  <b style="color:#ff0;">DEACON ARENA</b>
+  <div id="stats">Loading...</div>
+  <button id="rstBtn" class="btn" onclick="resetGame()">RESTART</button>
 </div>
 
 <div id="dialogue">
-  <div id="guideName">GUIDE: Freddie</div>
-  <div id="dialogueText">
-    Welcome John! Use WASD to explore different rooms. Press SPACEBAR to swing your sword and defeat the corruption!
-  </div>
+  <b style="color:#0ff;">Freddie:</b>
+  <div id="dialogueText">Let's go, John! Fight!</div>
 </div>
 
 <canvas id="canvas"></canvas>
@@ -91,349 +57,183 @@ html, body {
 <script>
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
-
-// System parameters
-var loop;
-var keys = {};
-var worldSize = 4000; 
-
-// Room coordinates
-var roomX = 0;
-var roomY = 0;
-
-// Player Core Data
-var pX, pY;
-var pSize = 32;
-var pSpeed = 6;
-var hp = 100;
-var maxHp = 100;
-var atk = 10;
-var lvl = 1;
-var xp = 0;
-var maxXp = 50;
-var bossCount = 0;
-
-// Attack Properties
-var swing = false;
-var swingTime = 0;
-
-// Entities list
+var loop, keys = {};
+var roomX = 0, roomY = 0;
+var pX, pY, pSize = 32, pSpeed = 6;
+var hp = 100, maxHp = 100, atk = 10;
+var lvl = 1, xp = 0, maxXp = 50, bossCount = 0;
+var swing = false, swingTime = 0;
+var fX, fY, fSize = 32, fSpeed = 5;
+var fSwing = false, fSwingTime = 0, fAtkCooldown = 0;
 var badGuys = [];
 
-// Sound System Synthesizer
+var johnImg = new Image();
+johnImg.crossOrigin = "anonymous";
+johnImg.src = "https://picsum.photos";
+
+var freddieImg = new Image();
+freddieImg.crossOrigin = "anonymous";
+freddieImg.src = "https://picsum.photos";
+
 function beep(f, type, d) {
   try {
-    var ctxAudio = new (
-      window.AudioContext || 
-      window.webkitAudioContext
-    )();
-    var osc = ctxAudio.createOscillator();
-    var gain = ctxAudio.createGain();
+    var ctxA = new (window.AudioContext || window.webkitAudioContext)();
+    var osc = ctxA.createOscillator();
+    var gain = ctxA.createGain();
     osc.type = type || "square";
-    osc.frequency.setValueAtTime(
-      f, 
-      ctxAudio.currentTime
-    );
-    gain.gain.setValueAtTime(
-      0.05, 
-      ctxAudio.currentTime
-    );
-    osc.connect(gain);
-    gain.connect(ctxAudio.destination);
-    osc.start();
-    osc.stop(
-      ctxAudio.currentTime + (d || 0.1)
-    );
+    osc.frequency.setValueAtTime(f, ctxA.currentTime);
+    gain.gain.setValueAtTime(0.03, ctxA.currentTime);
+    osc.connect(gain); gain.connect(ctxA.destination);
+    osc.start(); osc.stop(ctxA.currentTime + (d || 0.1));
   } catch(e) {}
 }
 
-// Dialog Triggers
-function say(msg) {
-  document.getElementById(
-    "dialogueText"
-  ).innerHTML = msg;
-}
-
-// Set game windows scale dynamically
 function resize() {
   canvas.width = window.innerWidth;
   canvas.height = window.innerHeight;
 }
-window.addEventListener("resize", resize);
-resize();
+window.addEventListener("resize", resize); resize();
 
-// Init / Reset System
 function resetGame() {
-  hp = 100;
-  maxHp = 100;
-  atk = 10;
-  lvl = 1;
-  xp = 0;
-  maxXp = 50;
-  bossCount = 0;
-  roomX = 0;
-  roomY = 0;
-  
-  pX = canvas.width / 2;
-  pY = canvas.height / 2;
-  
-  badGuys = [];
-  swing = false;
-  
-  document.getElementById(
-    "rstBtn"
-  ).style.display = "none";
-  
-  say("Keep moving John. The rooms hide dangerous entities. Fight on!");
-  beep(330, "triangle", 0.3);
-  
+  hp = 100; maxHp = 100; atk = 10;
+  lvl = 1; xp = 0; maxXp = 50; bossCount = 0;
+  roomX = 0; roomY = 0;
+  pX = canvas.width / 2; pY = canvas.height / 2;
+  fX = pX - 50; fY = pY - 50;
+  badGuys = []; swing = false; fSwing = false;
+  document.getElementById("rstBtn").style.display = "none";
+  document.getElementById("dialogueText").innerHTML = "Let's hunt phantoms!";
+  beep(330, "triangle", 0.2);
+  populateRoom();
   if(loop) clearInterval(loop);
   loop = setInterval(run, 1000 / 30);
 }
 
-// Generate Mob Layouts
 function populateRoom() {
   badGuys = [];
-  
-  // Decide if this room hosts a Boss
-  var isBossRoom = (
-    Math.abs(roomX) + Math.abs(roomY)
-  ) % 2 === 0 && (roomX !== 0 || roomY !== 0);
-  
-  if (isBossRoom && bossCount < 100) {
+  var isBoss = (Math.abs(roomX) + Math.abs(roomY)) % 2 === 0 && (roomX !== 0 || roomY !== 0);
+  if (isBoss && bossCount < 100) {
     var bLvl = bossCount + 1;
     badGuys.push({
-      x: canvas.width / 2,
-      y: canvas.height / 3,
-      size: 60 + (bLvl * 0.5),
-      hp: 50 + (bLvl * 45),
-      maxHp: 50 + (bLvl * 45),
-      atk: 4 + (bLvl * 2),
-      spd: 1.5 + (bLvl * 0.05),
-      isBoss: true,
-      label: "BOSS LVL " + bLvl
+      x: canvas.width / 2, y: canvas.height / 3,
+      size: 50, hp: 50 + (bLvl * 40), maxHp: 50 + (bLvl * 40),
+      atk: 4 + bLvl, spd: 2, isBoss: true, label: "BOSS " + bLvl
     });
-    say("Freddie: Careful! A powerful Master Boss blocks this sector!");
-    beep(150, "sawtooth", 0.5);
+    document.getElementById("dialogueText").innerHTML = "Watch out, John! Boss ahead!";
+    beep(150, "sawtooth", 0.4);
   } else {
-    // Regular room mobs
-    var count = 3 + Math.floor(Math.random() * 4);
+    var count = 3 + Math.floor(Math.random() * 3);
     for (var i = 0; i < count; i++) {
       badGuys.push({
         x: Math.random() * (canvas.width - 100) + 50,
         y: Math.random() * (canvas.height - 100) + 50,
-        size: 24,
-        hp: 15 + (lvl * 5),
-        maxHp: 15 + (lvl * 5),
-        atk: 2 + lvl,
-        spd: 2 + Math.random() * 2,
-        isBoss: false,
-        label: "Minion"
+        size: 24, hp: 15 + (lvl * 5), maxHp: 15 + (lvl * 5),
+        atk: 2 + lvl, spd: 2.5, isBoss: false, label: "Ghost"
       });
     }
   }
 }
 
-// Core Loop Engine
-function run() {
-  update();
-  draw();
-}
+function run() { update(); draw(); }
 
 function update() {
   if (hp <= 0) return;
-
-  // Process Controls
   if (keys['w'] || keys['W']) pY -= pSpeed;
   if (keys['s'] || keys['S']) pY += pSpeed;
   if (keys['a'] || keys['A']) pX -= pSpeed;
   if (keys['d'] || keys['D']) pX += pSpeed;
 
-  // Screen Transition Room Swapping
-  if (pX < -10) {
-    roomX--;
-    pX = canvas.width - 20;
-    populateRoom();
-    beep(440, "sine", 0.05);
-  }
-  if (pX > canvas.width + 10) {
-    roomX++;
-    pX = 20;
-    populateRoom();
-    beep(440, "sine", 0.05);
-  }
-  if (pY < -10) {
-    roomY++;
-    pY = canvas.height - 20;
-    populateRoom();
-    beep(440, "sine", 0.05);
-  }
-  if (pY > canvas.height + 10) {
-    roomY--;
-    pY = 20;
-    populateRoom();
-    beep(440, "sine", 0.05);
-  }
+  if (pX < -10) { roomX--; pX = canvas.width - 20; populateRoom(); fX = pX; }
+  if (pX > canvas.width + 10) { roomX++; pX = 20; populateRoom(); fX = pX; }
+  if (pY < -10) { roomY++; pY = canvas.height - 20; populateRoom(); fY = pY; }
+  if (pY > canvas.height + 10) { roomY--; pY = 20; populateRoom(); fY = pY; }
 
-  // Handle Sword Frame counters
-  if (swing) {
-    swingTime++;
-    if (swingTime > 4) {
-      swing = false;
-      swingTime = 0;
+  if (swing) { swingTime++; if (swingTime > 4) { swing = false; swingTime = 0; } }
+  if (fSwing) { fSwingTime++; if (fSwingTime > 4) { fSwing = false; fSwingTime = 0; } }
+  if (fAtkCooldown > 0) fAtkCooldown--;
+
+  if (badGuys.length > 0) {
+    var target = badGuys[0], minDist = 9999;
+    for (var k = 0; k < badGuys.length; k++) {
+      var dX = badGuys[k].x - fX, dY = badGuys[k].y - fY;
+      var d = Math.sqrt(dX*dX + dY*dY);
+      if (d < minDist) { minDist = d; target = badGuys[k]; }
+    }
+    if (fX < target.x) fX += fSpeed; if (fX > target.x) fX -= fSpeed;
+    if (fY < target.y) fY += fSpeed; if (fY > target.y) fY -= fSpeed;
+    if (minDist < 60 && fAtkCooldown === 0) { fSwing = true; fAtkCooldown = 12; beep(400, "sine", 0.04); }
+  } else {
+    var dX = pX - fX - 40, dY = pY - fY - 40;
+    if (Math.sqrt(dX*dX + dY*dY) > 50) {
+      if (fX < pX - 40) fX += fSpeed; if (fX > pX - 40) fX -= fSpeed;
+      if (fY < pY - 40) fY += fSpeed; if (fY > pY - 40) fY -= fSpeed;
     }
   }
 
-  // Combat processing
   for (var i = badGuys.length - 1; i >= 0; i--) {
     var e = badGuys[i];
-    
-    // Simple Tracking AI
-    if (e.x < pX) e.x += e.spd;
-    if (e.x > pX) e.x -= e.spd;
-    if (e.y < pY) e.y += e.spd;
-    if (e.y > pY) e.y -= e.spd;
+    if (e.x < pX) e.x += e.spd; if (e.x > pX) e.x -= e.spd;
+    if (e.y < pY) e.y += e.spd; if (e.y > pY) e.y -= e.spd;
 
-    // Sword Hit Checking
-    if (swing) {
-      var range = 70;
-      if (e.x > pX - range && e.x < pX + range &&
-          e.y > pY - range && e.y < pY + range) {
-        e.hp -= atk;
-        beep(600, "square", 0.03);
-        
-        // Target Terminated
-        if (e.hp <= 0) {
-          if (e.isBoss) {
-            bossCount++;
-            xp += 100;
-            say("Freddie: Incredible job! Boss down! Your power grows.");
-            beep(880, "sine", 0.4);
-          } else {
-            xp += 15;
-          }
-          badGuys.splice(i, 1);
-          checkLvl();
-          continue;
-        }
+    var hJ = swing && (e.x > pX - 60 && e.x < pX + 60 && e.y > pY - 60 && e.y < pY + 60);
+    var hF = fSwing && (e.x > fX - 60 && e.x < fX + 60 && e.y > fY - 60 && e.y < fY + 60);
+    if (hJ || hF) {
+      e.hp -= atk; beep(600, "square", 0.02);
+      if (e.hp <= 0) {
+        if (e.isBoss) { bossCount++; xp += 100; beep(880, "sine", 0.3); } else { xp += 15; }
+        badGuys.splice(i, 1); checkLvl(); continue;
       }
     }
-
-    // Creature Attacks Hero
-    if (e.x > pX - e.size && e.x < pX + pSize &&
-        e.y > pY - e.size && e.y < pY + pSize) {
-      hp -= e.atk * 0.05; // Constant damage contact
-      if (Math.random() < 0.1) beep(120, "sawtooth", 0.05);
-      
-      if (hp <= 0) {
-        hp = 0;
-        clearInterval(loop);
-        gameOver();
-      }
+    if (e.x > pX - e.size && e.x < pX + pSize && e.y > pY - e.size && e.y < pY + pSize) {
+      hp -= e.atk * 0.04; if (Math.random() < 0.1) beep(120, "sawtooth", 0.04);
+      if (hp <= 0) { hp = 0; clearInterval(loop); gameOver(); }
     }
   }
-
-  // Fresh UI data injection
-  document.getElementById("stats").innerHTML = 
-    "Level: " + lvl + " | Room: " + roomX + "," + roomY + "<br>" +
-    "HP: " + Math.ceil(hp) + " / " + maxHp + "<br>" +
-    "XP: " + xp + " / " + maxXp + "<br>" +
-    "Attack Power: " + atk + "<br>" +
-    "Bosses Beat: " + bossCount + " / 100";
+  document.getElementById("stats").innerHTML = "Lvl: " + lvl + " | Rm: " + roomX + "," + roomY + "<br>HP: " + Math.ceil(hp) + " / " + maxHp + "<br>XP: " + xp + " / " + maxXp + "<br>Bosses: " + bossCount + " / 100";
 }
 
 function checkLvl() {
   if (xp >= maxXp) {
-    xp -= maxXp;
-    lvl++;
-    maxXp = Math.floor(maxXp * 1.5);
-    maxHp += 20;
-    hp = maxHp;
-    atk += 6;
-    say("Freddie: LEVEL UP! You reached level " + lvl + "!");
-    beep(523, "triangle", 0.2);
-    setTimeout(function(){ beep(659, "triangle", 0.2); }, 100);
+    xp -= maxXp; lvl++; maxXp = Math.floor(maxXp * 1.5);
+    maxHp += 20; hp = maxHp; atk += 6; beep(523, "triangle", 0.2);
   }
 }
 
 function draw() {
-  ctx.fillStyle = "#1e1e1e";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-  // Generate background floor map grid lines
+  ctx.fillStyle = "#1e1e1e"; ctx.fillRect(0, 0, canvas.width, canvas.height);
   ctx.strokeStyle = "#2a2a2a";
-  ctx.lineWidth = 1;
-  for(var g = 0; g < canvas.width; g += 40) {
-    ctx.beginPath(); ctx.moveTo(g, 0); ctx.lineTo(g, canvas.height); ctx.stroke();
-  }
-  for(var g = 0; g < canvas.height; g += 40) {
-    ctx.beginPath(); ctx.moveTo(0, g); ctx.lineTo(canvas.width, g); ctx.stroke();
-  }
+  for(var g = 0; g < canvas.width; g += 40) { ctx.beginPath(); ctx.moveTo(g, 0); ctx.lineTo(g, canvas.height); ctx.stroke(); }
+  for(var g = 0; g < canvas.height; g += 40) { ctx.beginPath(); ctx.moveTo(0, g); ctx.lineTo(canvas.width, g); ctx.stroke(); }
 
-  // Render main player icon box
-  ctx.fillStyle = "#0f0";
-  ctx.fillRect(pX, pY, pSize, pSize);
-  ctx.fillStyle = "#fff";
-  ctx.font = "11px monospace";
-  ctx.fillText("Deacon", pX - 4, pY - 6);
+  ctx.fillStyle = "#0f0"; ctx.fillRect(pX, pY, pSize, pSize);
+  try { ctx.drawImage(johnImg, pX, pY, pSize, pSize); } catch(e) {}
+  if (swing) { ctx.fillStyle = "rgba(0,255,255,0.4)"; ctx.fillRect(pX-15, pY-15, pSize+30, pSize+30); }
 
-  // Weapon visual display
-  if (swing) {
-    ctx.fillStyle = "#0ff";
-    ctx.fillRect(pX - 20, pY - 20, pSize + 40, pSize + 40);
-  }
+  ctx.fillStyle = "#ff0"; ctx.fillRect(fX, fY, fSize, fSize);
+  try { ctx.drawImage(freddieImg, fX, fY, fSize, fSize); } catch(e) {}
+  if (fSwing) { ctx.fillStyle = "rgba(255,0,255,0.4)"; ctx.fillRect(fX-15, fY-15, fSize+30, fSize+30); }
 
-  // Render active target arrays
   for (var i = 0; i < badGuys.length; i++) {
-    var e = badGuys[i];
-    ctx.fillStyle = e.isBoss ? "#f0f" : "#f33";
-    ctx.fillRect(e.x, e.y, e.size, e.size);
-    
-    // Visual Target healthbars
-    ctx.fillStyle = "red";
-    ctx.fillRect(e.x, e.y - 12, e.size, 4);
-    ctx.fillStyle = "green";
-    ctx.fillRect(e.x, e.y - 12, e.size * (e.hp / e.maxHp), 4);
-    
-    ctx.fillStyle = "#fff";
-    ctx.font = "10px monospace";
-    ctx.fillText(e.label, e.x, e.y - 18);
+    var e = badGuys[i]; ctx.fillStyle = e.isBoss ? "#f0f" : "#f33"; ctx.fillRect(e.x, e.y, e.size, e.size);
+    ctx.fillStyle = "red"; ctx.fillRect(e.x, e.y - 10, e.size, 4);
+    ctx.fillStyle = "green"; ctx.fillRect(e.x, e.y - 10, e.size * (e.hp / e.maxHp), 4);
   }
 }
 
 function gameOver() {
-  ctx.fillStyle = "rgba(0,0,0,0.9)";
-  ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = "red";
-  ctx.font = "40px monospace";
-  ctx.fillText("GAME OVER", canvas.width / 2 - 100, canvas.height / 2);
-  say("Freddie: No! Fallback and recover, John! Try again!");
+  ctx.fillStyle = "rgba(0,0,0,0.9)"; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = "red"; ctx.font = "30px monospace"; ctx.fillText("GAME OVER", canvas.width / 2 - 70, canvas.height / 2);
   document.getElementById("rstBtn").style.display = "block";
 }
 
-// Controller Hooks
 window.addEventListener("keydown", function(e) {
   keys[e.key] = true;
   if (e.code === "Space") {
-    e.preventDefault();
-    if (!swing && hp > 0) {
-      swing = true;
-      swingTime = 0;
-      beep(350, "sine", 0.04);
-    }
+    e.preventDefault(); if (!swing && hp > 0) { swing = true; swingTime = 0; beep(350, "sine", 0.04); }
   }
 });
-
-window.addEventListener("keyup", function(e) {
-  keys[e.key] = false;
-});
-
-// Fire Up Engines
-pX = window.innerWidth / 2;
-pY = window.innerHeight / 2;
-populateRoom();
+window.addEventListener("keyup", function(e) { keys[e.key] = false; });
 resetGame();
 </script>
-
 </body>
 </html>
