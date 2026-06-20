@@ -1,278 +1,240 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Queen Retro Arcade</title>
+    <title>Queen Free Roam</title>
     <style>
         body {
-            background-color: #111;
+            background: #1a1a1a;
             color: #fff;
             font-family: monospace;
-            margin: 20px;
             text-align: center;
+            margin: 10px;
         }
-        .container {
-            max-width: 600px;
+        .box {
+            max-width: 500px;
             margin: 0 auto;
-            background: #222;
-            padding: 20px;
-            border: 4px solid #fff;
+            background: #262626;
+            padding: 15px;
+            border: 3px solid #ff0;
         }
         h1, h2 {
             color: #ff0;
-            text-transform: uppercase;
+            margin: 5px;
         }
-        .bio-section {
-            border: 2px dashed #ff0;
-            padding: 15px;
-            margin-bottom: 20px;
-            text-align: left;
-        }
-        .members {
-            display: inline-block;
-            margin: 10px;
-            padding: 10px;
-            background: #333;
-            border: 2px solid #fff;
-            width: 100px;
-        }
-        .members img {
-            width: 80px;
-            height: 80px;
-            object-fit: cover;
-            border: 1px solid #fff;
-            background: #555;
-        }
-        .btn {
-            background: #ff0;
-            color: #000;
-            border: none;
-            padding: 5px 10px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 5px;
-        }
-        .btn:hover {
-            background: #fff;
-        }
-        #gameCanvas {
+        #arena {
             background: #000;
-            border: 4px solid #ff0;
+            border: 3px solid #fff;
             display: block;
-            margin: 20px auto;
+            margin: 15px auto;
         }
-        .controls {
+        .info {
             background: #333;
-            padding: 10px;
+            padding: 8px;
+            font-size: 11px;
             border: 1px solid #fff;
-            font-size: 12px;
         }
     </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Queen Fan Zone</h1>
+<div class="box">
+    <h1>Deacon Free-Roam</h1>
+    <p>Explore the arena and fight!</p>
     
-    <div class="bio-section">
-        <h2>About Me</h2>
-        <p>Welcome to my goofy website! I at least post 2 pins a day on pinny (Pinterest). Play an arcade game thingy below and play some audios below each Queen member's images.</p>
-    </div>
-
-    <h2>The Band</h2>
-    <div id="band-space">
-        <div class="members">
-            <img src="https://files.catbox.moe/rc3vif.jpg" alt="Freddie">
-            <div>Freddie</div>
-           <button class="btn" onclick="playAudio(329)">Sound</button>
-        <div class="members">
-            <img src="https://files.catbox.moe/yjtmeu.jpg" alt="Brian">
-            <div>Brian</div>
-            <button class="btn" onclick="playAudio(329)">Sound</button>
-        </div>
-        <div class="members">
-            <img src="https://files.catbox.moe/3rv3wb.jpg" alt="Roger">
-            <div>Roger</div>
-            <button class="btn" onclick="playAudio(392)">Sound</button>
-        </div>
-        <div class="members">
-            <img src="https://files.catbox.moe/hgftao.jpg" alt="John">
-            <div>John</div>
-            <button class="btn" onclick="playAudio(196)">Sound</button>
-        </div>
-    </div>
-
-    <h2>Deacon Battle Arena</h2>
-    <button class="btn" onclick="initGame()">START GAME</button>
+    <canvas 
+        id="arena" 
+        width="400" 
+        height="300">
+    </canvas>
     
-    <canvas id="gameCanvas" width="400" height="300"></canvas>
-    
-    <div class="controls">
-        <p>CONTROLS: Press <strong>SPACEBAR</strong> to Swing Sword!</p>
-        <p>Defeat the oncoming target blocks before they touch John!</p>
-        <h3 id="scoreBox">Score: 0 | Health: 3</h3>
+    <div class="info">
+        <p><b>MOVE:</b> W, A, S, D keys</p>
+        <p><b>ATTACK:</b> Spacebar</p>
+        <h3 id="statBox">
+            Score: 0 | HP: 5
+        </h3>
     </div>
 </div>
 
 <script>
-    // Audio synthesizer engine for retro 8-bit sound effects
-    function playAudio(freq) {
-        var context = new (window.AudioContext || window.webkitAudioContext)();
-        var osc = context.createOscillator();
-        var gain = context.createGain();
-        osc.type = "square";
-        osc.frequency.setValueAtTime(freq, context.currentTime);
-        gain.gain.setValueAtTime(0.1, context.currentTime);
-        osc.connect(gain);
-        gain.connect(context.destination);
-        osc.start();
-        osc.stop(context.currentTime + 0.15);
-    }
-
-    // Game Core State Variables
-    var canvas = document.getElementById("gameCanvas");
-    var ctx = canvas.getContext("2d");
+    var cnvs = document.getElementById("arena");
+    var ctx = cnvs.getContext("2d");
     var loop;
+    
+    // Game States
     var score = 0;
-    var health = 3;
-    var swordActive = false;
-    var swordTimer = 0;
-    var enemies = [];
+    var hp = 5;
+    
+    // Player Setup
+    var pX = 180;
+    var pY = 130;
+    var pSpd = 4;
+    var atkActive = false;
+    var atkTimer = 0;
+    
+    // Keyboard State Array
+    var keys = {};
+    
+    // Enemy List Array
+    var badGuys = [];
 
-    // Verified public cross-origin image sources
-    var playerImg = new Image();
-    playerImg.crossOrigin = "anonymous";
-    playerImg.src = "https://files.catbox.moe/jhbuo3.avif";
+    // Verified Safe Art Links
+    var imgJohn = new Image();
+    imgJohn.crossOrigin = "anonymous";
+    imgJohn.src = "https://picsum.photos";
 
-    var enemyImg = new Image();
-    enemyImg.crossOrigin = "anonymous";
-    enemyImg.src = "https://files.catbox.moe/6zxdem.webp";
+    var imgGhost = new Image();
+    imgGhost.crossOrigin = "anonymous";
+    imgGhost.src = "https://picsum.photos";
 
-    function initGame() {
+    // Start Everything Clean
+    function start() {
         score = 0;
-        health = 3;
-        enemies = [];
-        swordActive = false;
-        document.getElementById("scoreBox").innerHTML = "Score: " + score + " | Health: " + health;
+        hp = 5;
+        badGuys = [];
+        atkActive = false;
         
         if(loop) clearInterval(loop);
-        loop = setInterval(gameLoop, 1000 / 30);
-        playAudio(440);
+        loop = setInterval(tick, 1000 / 30);
     }
 
-    function gameLoop() {
-        update();
-        draw();
+    function tick() {
+        updateGame();
+        drawGame();
     }
 
-    function update() {
-        if (swordActive) {
-            swordTimer++;
-            if (swordTimer > 5) {
-                swordActive = false;
-                swordTimer = 0;
+    function updateGame() {
+        // Player Movement Engine
+        if (keys['w'] || keys['W']) pY -= pSpd;
+        if (keys['s'] || keys['S']) pY += pSpd;
+        if (keys['a'] || keys['A']) pX -= pSpd;
+        if (keys['d'] || keys['D']) pX += pSpd;
+
+        // Keep Player Inside Walls
+        if (pX < 0) pX = 0;
+        if (pX > cnvs.width - 30) {
+            pX = cnvs.width - 30;
+        }
+        if (pY < 0) pY = 0;
+        if (pY > cnvs.height - 30) {
+            pY = cnvs.height - 30;
+        }
+
+        // Handle Sword Swipe Timing
+        if (atkActive) {
+            atkTimer++;
+            if (atkTimer > 4) {
+                atkActive = false;
+                atkTimer = 0;
             }
         }
 
-        // Enemy generation manager
-        if (Math.random() < 0.03) {
-            enemies.push({
-                x: canvas.width,
-                y: 130,
-                width: 40,
-                height: 40,
-                speed: 3 + Math.random() * 2
+        // Spawn Enemies Slowly
+        if (Math.random() < 0.02 && badGuys.length < 5) {
+            badGuys.push({
+                x: Math.random() * (cnvs.width - 30),
+                y: Math.random() * (cnvs.height - 30),
+                spd: 1.5
             });
         }
 
-        // Collision detection and movement cycle
-        for (var i = enemies.length - 1; i >= 0; i--) {
-            enemies[i].x -= enemies[i].speed;
+        // Process Enemies AI
+        for (var i = badGuys.length - 1; i >= 0; i--) {
+            var e = badGuys[i];
 
-            // Attack validation
-            if (swordActive && enemies[i].x < 110 && enemies[i].x > 50) {
-                enemies.splice(i, 1);
-                score++;
-                playAudio(587);
-                continue;
+            // AI Hunts Player Tracking Position
+            if (e.x < pX) e.x += e.spd;
+            if (e.x > pX) e.x -= e.spd;
+            if (e.y < pY) e.y += e.spd;
+            if (e.y > pY) e.y -= e.spd;
+
+            // Combat Collision Checks
+            var hit = false;
+            
+            if (atkActive) {
+                // Check if enemy inside weapon arc
+                if (e.x > pX - 25 && e.x < pX + 55 &&
+                    e.y > pY - 25 && e.y < pY + 55) {
+                    badGuys.splice(i, 1);
+                    score++;
+                    hit = true;
+                }
             }
 
-            // Impact check against player zone
-            if (enemies[i].x <= 60) {
-                enemies.splice(i, 1);
-                health--;
-                playAudio(147);
-                if (health <= 0) {
-                    clearInterval(loop);
-                    drawGameOver();
-                    return;
+            // Enemy Hits Player Check
+            if (!hit) {
+                if (e.x > pX - 20 && e.x < pX + 20 &&
+                    e.y > pY - 20 && e.y < pY + 20) {
+                    badGuys.splice(i, 1);
+                    hp--;
+                    if (hp <= 0) {
+                        clearInterval(loop);
+                        endGameScreen();
+                    }
                 }
             }
         }
-        document.getElementById("scoreBox").innerHTML = "Score: " + score + " | Health: " + health;
+
+        // Update UI Box Text String Safely
+        var txt = "Score: " + score + " | HP: " + hp;
+        document.getElementById("statBox").innerHTML = txt;
     }
 
-    function draw() {
+    function drawGame() {
+        // Refresh Screen Canvas Backdrop
         ctx.fillStyle = "#000";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.fillRect(0, 0, cnvs.width, cnvs.height);
 
-        // Ground track platform
-        ctx.strokeStyle = "#fff";
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.moveTo(0, 170);
-        ctx.lineTo(canvas.width, 170);
-        ctx.stroke();
-
-        // Draw Player Sprite (With color block backup)
+        // Draw Player Sprite Box Look
         ctx.fillStyle = "#0f0";
-        ctx.fillRect(20, 120, 40, 40);
+        ctx.fillRect(pX, pY, 30, 30);
         try {
-            ctx.drawImage(playerImg, 20, 120, 40, 40);
-        } catch(e) {}
-        ctx.fillStyle = "#fff";
-        ctx.font = "10px monospace";
-        ctx.fillText("JOHN", 25, 115);
+            ctx.drawImage(imgJohn, pX, pY, 30, 30);
+        } catch(err) {}
 
-        // Draw Sword Weapon System
-        if (swordActive) {
+        // Draw Energy Sword Arc Effect
+        if (atkActive) {
             ctx.fillStyle = "#0ff";
-            ctx.fillRect(65, 130, 40, 10);
-        } else {
-            ctx.fillStyle = "#aaa";
-            ctx.fillRect(55, 120, 10, 20);
+            ctx.fillRect(pX - 15, pY - 15, 60, 60);
         }
 
-        // Draw Enemy Grid Array (With color block backup)
-        for (var i = 0; i < enemies.length; i++) {
+        // Draw Enemy Grid Sprites Dynamic
+        for (var i = 0; i < badGuys.length; i++) {
+            var e = badGuys[i];
             ctx.fillStyle = "#f00";
-            ctx.fillRect(enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height);
+            ctx.fillRect(e.x, e.y, 30, 30);
             try {
-                ctx.drawImage(enemyImg, enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height);
-            } catch(e) {}
-            
-            ctx.strokeStyle = "yellow";
-            ctx.strokeRect(enemies[i].x, enemies[i].y, enemies[i].width, enemies[i].height);
+                ctx.drawImage(imgGhost, e.x, e.y, 30, 30);
+            } catch(err) {}
         }
     }
 
-    function drawGameOver() {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.8)";
-        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    function endGameScreen() {
+        ctx.fillStyle = "rgba(0,0,0,0.85)";
+        ctx.fillRect(0, 0, cnvs.width, cnvs.height);
         ctx.fillStyle = "red";
-        ctx.font = "30px monospace";
-        ctx.fillText("GAME OVER", 120, 150);
+        ctx.font = "24px monospace";
+        ctx.fillText("GAME OVER", 130, 140);
     }
 
-    // Capture user spacebar activity
+    // Capture Input Up and Down States
     window.addEventListener("keydown", function(e) {
+        keys[e.key] = true;
         if (e.code === "Space") {
             e.preventDefault();
-            if (!swordActive && health > 0) {
-                swordActive = true;
-                swordTimer = 0;
+            if (!atkActive && hp > 0) {
+                atkActive = true;
+                atkTimer = 0;
             }
         }
     });
+
+    window.addEventListener("keyup", function(e) {
+        keys[e.key] = false;
+    });
+
+    // Fire Up Engine Load
+    start();
 </script>
 
 </body>
