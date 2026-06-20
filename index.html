@@ -117,7 +117,8 @@
         </div>
 
         <div class="member-box">
-            <img src="john.jpg" alt="John Deacon">
+            <!-- Using a direct image URL for John Deacon -->
+            <img src="https://wikimedia.org" alt="John Deacon">
             <h3>John Deacon</h3>
             <button onclick="playSound('john-audio')">Play Sound</button>
             <audio id="john-audio" src="john.mp3"></audio>
@@ -151,9 +152,9 @@
         var gameInterval;
         var isPlaying = false;
 
-        // Load the bird image dynamically from the John Deacon image source
+        // Pulls John Deacon's face from Wikipedia directly into the canvas game loop
         var deaconImg = new Image();
-        deaconImg.src = "john.jpg"; 
+        deaconImg.src = "https://wikimedia.org"; 
 
         function startGame() {
             if (gameInterval) clearInterval(gameInterval);
@@ -174,7 +175,6 @@
                 bottom: 150
             });
 
-            // Start the basic human-style game loop (runs 60 times a second)
             gameInterval = setInterval(updateGame, 1000 / 60);
         }
 
@@ -183,36 +183,36 @@
             velocity += gravity;
             birdY += velocity;
 
-            // Handle jumping
-            if (birdY > canvas.height - 30) {
-                birdY = canvas.height - 30;
+            // Handle landing or flying off screen
+            if (birdY > canvas.height - 35) {
+                birdY = canvas.height - 35;
                 gameOver();
             }
             if (birdY < 0) birdY = 0;
 
             // Move pipes
             for (var i = 0; i < pipes.length; i++) {
-                pipes[i].x -= 2; // Pipe moving speed
+                pipes[i].x -= 2;
 
-                // Check collision with pipes
-                if (pipes[i].x < 50 + 30 && pipes[i].x + 40 > 50) {
-                    if (birdY < pipes[i].top || birdY + 30 > canvas.height - pipes[i].bottom) {
+                // Collision logic
+                if (pipes[i].x < 50 + 35 && pipes[i].x + 40 > 50) {
+                    if (birdY < pipes[i].top || birdY + 35 > canvas.height - pipes[i].bottom) {
                         gameOver();
                     }
                 }
 
-                // Add points
+                // Score tick
                 if (pipes[i].x === 50) {
                     score++;
                 }
             }
 
-            // Delete old pipes and spawn new ones
+            // Remove old pipes
             if (pipes.length > 0 && pipes[0].x < -40) {
                 pipes.shift();
             }
 
-            // Every 120 frames, add a new pipe with random height gaps
+            // Spawn new pipes dynamically
             if (Math.random() < 0.01 && (pipes.length === 0 || pipes[pipes.length - 1].x < canvas.width - 200)) {
                 var topHeight = Math.floor(Math.random() * 150) + 50;
                 var bottomHeight = Math.floor(Math.random() * 150) + 50;
@@ -226,25 +226,17 @@
             // DRAWING EVERYTHING
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Sky background color
+            // Draw Background Sky
             ctx.fillStyle = "#70c5ce";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            // Draw John Deacon (The Bird)
-            // If image fails to load, it falls back to a funny yellow square
-            try {
-                ctx.drawImage(deaconImg, 50, birdY, 35, 35);
-            } catch(e) {
-                ctx.fillStyle = "yellow";
-                ctx.fillRect(50, birdY, 30, 30);
-            }
+            // Renders John Deacon's picture as the player sprite
+            ctx.drawImage(deaconImg, 50, birdY, 35, 35);
 
-            // Draw Pipes (Styled like big retro music speakers/columns)
+            // Draw Pipes
             ctx.fillStyle = "#4a4a4a";
             for (var i = 0; i < pipes.length; i++) {
-                // Top obstacle
                 ctx.fillRect(pipes[i].x, 0, 40, pipes[i].top);
-                // Bottom obstacle
                 ctx.fillRect(pipes[i].x, canvas.height - pipes[i].bottom, 40, pipes[i].bottom);
             }
 
@@ -264,18 +256,18 @@
             ctx.font = "30px Arial";
             ctx.textAlign = "center";
             ctx.fillText("GAME OVER", canvas.width / 2, canvas.height / 2);
-            ctx.textAlign = "left"; // reset alignment
+            ctx.textAlign = "left"; 
         }
 
-        // Jump controls via spacebar
+        // Spacebar Jump listener
         window.addEventListener("keydown", function(e) {
             if (e.code === "Space" && isPlaying) {
                 velocity = jump;
-                e.preventDefault(); // Stops page from scrolling down
+                e.preventDefault(); 
             }
         });
 
-        // Jump controls via canvas clicks (for easier testing)
+        // Click Jump listener
         canvas.addEventListener("click", function() {
             if (isPlaying) {
                 velocity = jump;
@@ -285,4 +277,3 @@
 
 </body>
 </html>
-
