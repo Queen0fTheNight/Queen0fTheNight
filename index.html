@@ -3,6 +3,15 @@
 <head>
   <title>DivaLovieSpirit</title>
 <body>
+  <script>
+    let currentNumber = 0;
+    setInterval(function() {
+      currentNumber = currentNumber + 1;
+      document.getElementById("counter-screen").innerText = currentNumber;
+      console.log("The number is now:", currentNumber);
+
+    }, 1000);
+  </script>
 </body>
 </head>
 </html>
