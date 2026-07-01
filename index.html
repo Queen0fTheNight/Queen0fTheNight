@@ -3,10 +3,27 @@
 <head>
     <title>Queen Royal Familyy</title>
     <style>
-        body {
-            background: url('https://ibb.co/3YM4BWkH') center / cover no-repeat fixed;
-        }
-    </style>
+    body {
+        margin: 0;
+        padding: 0;
+        min-height: 100vh;
+        position: relative;
+    }
+
+    body::before {
+        content: "";
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        background: url('https://ibb.co/3YM4BWkH') center / cover no-repeat;
+        filter: blur(4px); /* Controls the blur amount */
+        transform: scale(1.05); /* Prevents white unblurred edges */
+    }
+</style>
+
 </head>
 <body>
     <!-- Your page content goes here -->
