@@ -2,73 +2,24 @@
 <html>
 <head>
   <title>DivaLovieSpirit</title>
+<body>
   <style>
     body {
-        background-color: black;
-        contrast: 140%; 
-  /* Makes the colors pop significantly */
-  saturate: 180%;
+      background-image: url('https://ibb.co/1fQSyX6Q'); 
   
-  /* Adds a warm, nostalgic yellowish-brown undertone */
-  sepia: 35%;
+  /* Center the image horizontally and vertically */
+  background-position: center; 
   
-  /* Slightly shifts colors toward warmer red/orange hues */
-  hue-rotate: -10deg;
+  /* Prevent the image from tiling/repeating if it is small */
+  background-repeat: no-repeat; 
   
-  /* Gives it that bright, slightly overexposed 1970s look */
-  brightness: 105%;
-}
-Use code with caution.
-}
-
-    
-    .Intro {
-      color: white;
-      font-family: Impact;
-    }
-
-    .IntroTwo {
-      position: relative;
-      text-align: center;
-      color: white;
-      font-family: 'Queen';
-      font-size: 34px;
+  /* Scale the image proportionally to completely fill the area */
+  background-size: cover; 
+  
+  /* Optional: Keep the image fixed in place while scrolling */
+  background-attachment: fixed; 
     }
   </style>
-</head>
-<body>
-  <p class="Intro" id="text1"> D I V A D E N </p>
-  <p class="IntroTwo" id="text2"> GREETINGS, SALUTATIONS </p>
-
-  <script>
-    // A list of vibrant colors to cycle through for the letters
-    const colorPalette = ["#FF5733", "#33FF57", "#3357FF", "#F3FF33", "#FF33F3", "#33FFF0"];
-
-    function colorizeText(elementId) {
-      const element = document.getElementById(elementId);
-      if (!element) return;
-
-      const originalText = element.innerText;
-      element.innerHTML = ""; // Clear the original plain text
-
-      // Loop through each character to apply a color
-      for (let i = 0; i < originalText.length; i++) {
-        const charSpan = document.createElement("span");
-        charSpan.innerText = originalText[i];
-
-        // Only color actual letters, skip spaces to keep layout clean
-        if (originalText[i] !== " ") {
-          // Cycle through the color palette pattern smoothly
-          charSpan.style.color = colorPalette[i % colorPalette.length];
-        }
-
-        element.appendChild(charSpan);
-      }
-    }
-
-    // Run the function on both of your text sections
-    colorizeText("text1");
-    colorizeText("text2");
-  </script>
 </body>
+</head>
 </html>
